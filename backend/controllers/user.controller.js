@@ -1,6 +1,8 @@
 import asyncHandler from "express-async-handler";
 import { UserSchema } from "../models/user.model.js";
+import generateToken from "../config/jwtAuthToken.js";
 
+// Create User
 export const createUser = asyncHandler(async (req, res, next) => {
   const email = req.body.email;
   try {
@@ -19,6 +21,7 @@ export const createUser = asyncHandler(async (req, res, next) => {
   }
 });
 
+// Login User
 export const loginUser = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
   try {
@@ -34,7 +37,15 @@ export const loginUser = asyncHandler(async (req, res, next) => {
     }
     const findUser = await UserSchema.findOne({ email });
     if (findUser && (await findUser.isPasswordMatched(password))) {
-      res.status(200).json(findUser);
+      // res.status(200).json({ ...findUser, token: generateToken(findUser?._id) });
+      res.status(200).json({
+        _id: findUser?._id,
+        firstname: findUser?.firstname,
+        lastname: findUser?.lastname,
+        email: findUser?.email,
+        mobile: findUser?.mobile,
+        token: generateToken(findUser?._id),
+      });
     } else {
       // console.log("Login failed");
       throw new Error("Invalid Credentials");
@@ -44,3 +55,4 @@ export const loginUser = asyncHandler(async (req, res, next) => {
     next(err);
   }
 });
+
