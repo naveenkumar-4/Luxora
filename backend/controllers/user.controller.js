@@ -1,6 +1,9 @@
 import asyncHandler from "express-async-handler";
 import { UserSchema } from "../models/user.model.js";
 import generateToken from "../config/jwtAuthToken.js";
+import mongoose from "mongoose";
+
+const ObjectId = mongoose.Types.ObjectId;
 
 // Create User
 export const createUser = asyncHandler(async (req, res, next) => {
@@ -56,3 +59,32 @@ export const loginUser = asyncHandler(async (req, res, next) => {
   }
 });
 
+// Get all users
+export const getAllUsers = asyncHandler(async (req, res, next) => {
+  try {
+    const getUsers = await UserSchema.find();
+    res.status(200).json(getUsers);
+  } catch (err) {
+    console.log(err.message);
+    next(err);
+  }
+});
+
+// Get a single user
+export const getSingleUser = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    if (!id) {
+      throw new Error("Provide Id of the user");
+    }
+    console.log(id);
+    const getUser = await UserSchema.findById(new ObjectId(id));
+    if (!getUser) {
+      throw new Error("User not found");
+    }
+    res.status(200).json(getUser);
+  } catch (err) {
+    console.log(err.message);
+    next(err);
+  }
+});
