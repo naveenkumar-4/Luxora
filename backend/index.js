@@ -4,6 +4,7 @@ dotenv.config();
 import { connectDB } from "./config/db.js";
 import { userRouter } from "./routes/user.routes.js";
 import bodyParser from "body-parser";
+import { errorHandler, notFound } from "./middlewares/ErrorHandler.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -16,6 +17,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use("/api/user", userRouter);
+
+
+app.use(notFound);
+app.use(errorHandler)
 app.listen(PORT, () => {
   console.log(`Server is listening at PORT ${PORT}`);
   connectDB();

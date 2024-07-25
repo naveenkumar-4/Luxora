@@ -1,6 +1,7 @@
+import asyncHandler from "express-async-handler";
 import { UserSchema } from "../models/user.model.js";
 
-export const createUser = async (req, res) => {
+export const createUser = asyncHandler(async (req, res, next) => {
   const email = req.body.email;
   try {
     const findUser = await UserSchema.findOne({ email: email });
@@ -10,16 +11,10 @@ export const createUser = async (req, res) => {
       res.status(201).json(newUser);
     } else {
       // User already exists
-      res.status(400).json({
-        msg: "User already exists",
-        sucess: false,
-      });
+      throw new Error("User Already Exists");
     }
   } catch (err) {
     console.log("Error while creating user");
-    res.status(500).json({
-      msg: "Server error",
-      success: false,
-    });
+    next(err);
   }
-};
+});
