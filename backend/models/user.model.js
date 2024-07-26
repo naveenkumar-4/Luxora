@@ -28,6 +28,12 @@ export const userSchema = new mongoose.Schema({
     type: String,
     default: "user",
   },
+  cart: {
+    type: Array,
+    default: [],
+  },
+  address: [{ type: mongoose.Schema.Types.ObjectId, ref: "Address" }],
+  wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
 });
 
 userSchema.pre("save", async function (next) {
