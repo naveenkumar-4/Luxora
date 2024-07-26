@@ -2,6 +2,7 @@ import asyncHandler from "express-async-handler";
 import { UserSchema } from "../models/user.model.js";
 import generateToken from "../config/jwtAuthToken.js";
 import mongoose from "mongoose";
+import { validateMongodbId } from "../utils/validateMongoID.js";
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -62,6 +63,7 @@ export const loginUser = asyncHandler(async (req, res, next) => {
 // Update User
 export const updateUser = asyncHandler(async (req, res, next) => {
   const { _id } = req.user;
+  validateMongodbId(_id);
   try {
     const updateUser = await UserSchema.findByIdAndUpdate(
       _id,
@@ -98,6 +100,7 @@ export const getAllUsers = asyncHandler(async (req, res, next) => {
 // Get a single user
 export const getSingleUser = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
+  validateMongodbId(id);
   try {
     if (!id) {
       throw new Error("Provide Id of the user");
@@ -117,6 +120,7 @@ export const getSingleUser = asyncHandler(async (req, res, next) => {
 // Delete a User
 export const deleteUser = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
+  validateMongodbId(id);
   try {
     if (!id) {
       throw new Error("Provide Id of the user");
@@ -135,6 +139,7 @@ export const deleteUser = asyncHandler(async (req, res, next) => {
 
 export const blockUser = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
+  validateMongodbId(id);
   try {
     const blockUser = await UserSchema.findByIdAndUpdate(
       new ObjectId(id),
@@ -160,6 +165,7 @@ export const blockUser = asyncHandler(async (req, res, next) => {
 
 export const unBlockUser = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
+  validateMongodbId(id);
   try {
     const unBlockUser = await UserSchema.findByIdAndUpdate(
       new ObjectId(id),
