@@ -61,16 +61,16 @@ export const loginUser = asyncHandler(async (req, res, next) => {
 
 // Update User
 export const updateUser = asyncHandler(async (req, res, next) => {
-  const { id } = req.params;
+  const { _id } = req.user;
   try {
     const updateUser = await UserSchema.findByIdAndUpdate(
-      new ObjectId(id),
+      _id,
       {
         firstname: req?.body?.firstname,
         lastname: req?.body?.lastname,
         email: req?.body?.email,
         mobile: req?.body?.mobile,
-        role: req?.body?.role,
+        // role: req?.body?.role,
       },
       {
         new: true,
