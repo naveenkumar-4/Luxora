@@ -132,3 +132,53 @@ export const deleteUser = asyncHandler(async (req, res, next) => {
     next(err);
   }
 });
+
+export const blockUser = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const blockUser = await UserSchema.findByIdAndUpdate(
+      new ObjectId(id),
+      {
+        isBlocked: true,
+      },
+      {
+        new: true,
+      },
+      {
+        runValidators: true,
+      }
+    );
+    res.status(200).json({
+      message: "User is Blocked",
+      blockedUser: blockUser,
+    });
+  } catch (err) {
+    console.log(err.msg);
+    next(err);
+  }
+});
+
+export const unBlockUser = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const unBlockUser = await UserSchema.findByIdAndUpdate(
+      new ObjectId(id),
+      {
+        isBlocked: false,
+      },
+      {
+        new: true,
+      },
+      {
+        runValidators: true,
+      }
+    );
+    res.status(200).json({
+      message: "User is UnBlocked",
+      blockedUser: unBlockUser,
+    });
+  } catch (err) {
+    console.log(err.msg);
+    next(err);
+  }
+});
