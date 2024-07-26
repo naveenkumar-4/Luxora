@@ -59,6 +59,31 @@ export const loginUser = asyncHandler(async (req, res, next) => {
   }
 });
 
+// Update User
+export const updateUser = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const updateUser = await UserSchema.findByIdAndUpdate(
+      new ObjectId(id),
+      {
+        firstname: req?.body?.firstname,
+        lastname: req?.body?.lastname,
+        email: req?.body?.email,
+        mobile: req?.body?.mobile,
+        role: req?.body?.role,
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+    res.status(200).json(updateUser);
+  } catch (err) {
+    console.log(err.message);
+    next(err);
+  }
+});
+
 // Get all users
 export const getAllUsers = asyncHandler(async (req, res, next) => {
   try {
@@ -83,6 +108,25 @@ export const getSingleUser = asyncHandler(async (req, res, next) => {
       throw new Error("User not found");
     }
     res.status(200).json(getUser);
+  } catch (err) {
+    console.log(err.message);
+    next(err);
+  }
+});
+
+// Delete a User
+export const deleteUser = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    if (!id) {
+      throw new Error("Provide Id of the user");
+    }
+    console.log(id);
+    const deleteUser = await UserSchema.findByIdAndDelete(new ObjectId(id));
+    if (!deleteUser) {
+      throw new Error("User not found");
+    }
+    res.status(200).json({ deletedUser: deleteUser });
   } catch (err) {
     console.log(err.message);
     next(err);
