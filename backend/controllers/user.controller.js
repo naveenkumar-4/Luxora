@@ -1,7 +1,10 @@
 import asyncHandler from "express-async-handler";
-import { UserSchema } from "../models/user.model.js";
-import generateToken from "../config/jwtAuthToken.js";
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
+
+import generateToken from "../config/jwtAuthToken.js";
+import generateRefreshToken from "../config/refershToken.js";
+import { UserSchema } from "../models/user.model.js";
 import { validateMongodbId } from "../utils/validateMongoID.js";
 
 const ObjectId = mongoose.Types.ObjectId;
@@ -42,6 +45,21 @@ export const loginUser = asyncHandler(async (req, res, next) => {
     const findUser = await UserSchema.findOne({ email });
     if (findUser && (await findUser.isPasswordMatched(password))) {
       // res.status(200).json({ ...findUser, token: generateToken(findUser?._id) });
+      const refreshToken = await generateRefreshToken(findUser?._id);
+      const updateUser = await UserSchema.findByIdAndUpdate(
+        findUser._id,
+        {
+          refreshToken: refreshToken,
+        },
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        maxAge: 72 * 60 * 60 * 1000,
+      });
       res.status(200).json({
         _id: findUser?._id,
         firstname: findUser?.firstname,
@@ -58,6 +76,54 @@ export const loginUser = asyncHandler(async (req, res, next) => {
     console.log(err.message);
     next(err);
   }
+});
+
+// Handle refresh token
+export const handleRefreshToken = asyncHandler(async (req, res, next) => {
+  const cookie = req.cookies;
+  console.log(cookie);
+  if (!cookie?.refreshToken) {
+    throw new Error("There is no refersh token in cookies");
+  }
+  const refreshToken = cookie.refreshToken;
+  console.log(refreshToken);
+  const user = await UserSchema.findOne({ refreshToken });
+  if (!user) {
+    throw new Error("No Refresh token present in DB or it is not matched");
+  }
+  jwt.verify(refreshToken, process.env.SECRET_KEY, (err, decoded) => {
+    console.log(`id  : ${decoded}`);
+    if (err || user.id !== decoded.id) {
+      throw new Error("Something wrong with Refresh token");
+    }
+    const accessToken = generateToken(user?._id);
+    res.json({ accessToken });
+  });
+
+  // res.status(200).json(user);
+});
+
+// logout user
+export const logout = asyncHandler(async (req, res, next) => {
+  const cookie = req.cookies;
+  if (!cookie?.refreshToken) throw new Error("No refresh token in cookies");
+  const refreshToken = cookie.refreshToken;
+  const user = await UserSchema.findOne({ refreshToken });
+  if (!user) {
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+    });
+    return res.sendStatus(204); //Forbidden
+  }
+  await UserSchema.findOneAndUpdate({refreshToken}, {
+    refreshToken: "",
+  });
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: true,
+  });
+  return res.sendStatus(204);
 });
 
 // Update User
