@@ -3,11 +3,13 @@ import dotenv from "dotenv";
 dotenv.config();
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
+import morgan from "morgan";
 
 import { connectDB } from "./config/db.js";
 import { errorHandler, notFound } from "./middlewares/ErrorHandler.js";
 
 import { userRouter } from "./routes/user.routes.js";
+import { productRouter } from "./routes/product.routes.js";
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -15,10 +17,12 @@ const PORT = process.env.PORT || 5000;
 //   res.send("Welcome to ECOM Server");
 // });
 
+app.use(morgan("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use("/api/user", userRouter);
+app.use("/api/product", productRouter);
 
 app.use(notFound);
 app.use(errorHandler);

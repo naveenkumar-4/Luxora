@@ -1,4 +1,4 @@
-import mongoose, { Collection } from "mongoose";
+import mongoose from "mongoose";
 
 // Declare the Schema of the Mongo model
 const productSchema = new mongoose.Schema(
@@ -23,12 +23,12 @@ const productSchema = new mongoose.Schema(
       required: true,
     },
     category: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Category",
+      type: String,
+      required: true,
     },
     brand: {
       type: String,
-      enum: ["Apple", "Samsung", "Lenovo"],
+      required: true,
     },
     sold: {
       type: Number,
@@ -36,13 +36,14 @@ const productSchema = new mongoose.Schema(
     },
     quantity: {
       type: Number,
+      required: true,
     },
     images: {
       type: Array,
     },
     color: {
       type: String,
-      enum: ["Black", "Brown", "Red"],
+      required: true,
     },
     ratings: [
       {
