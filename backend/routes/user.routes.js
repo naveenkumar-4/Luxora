@@ -10,11 +10,13 @@ import {
   unBlockUser,
   handleRefreshToken,
   logout,
+  updatePassword,
 } from "../controllers/user.controller.js";
 import { authJwt, isAdmin } from "../middlewares/jwtAuth.js";
 export const userRouter = express.Router();
 
 userRouter.post("/register", createUser);
+userRouter.put("/update-password", authJwt, updatePassword)
 userRouter.post("/login", loginUser);
 userRouter.get("/get-all-Users", getAllUsers);
 userRouter.get("/refresh-token", handleRefreshToken);

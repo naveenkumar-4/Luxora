@@ -116,9 +116,12 @@ export const logout = asyncHandler(async (req, res, next) => {
     });
     return res.sendStatus(204); //Forbidden
   }
-  await UserSchema.findOneAndUpdate({refreshToken}, {
-    refreshToken: "",
-  });
+  await UserSchema.findOneAndUpdate(
+    { refreshToken },
+    {
+      refreshToken: "",
+    }
+  );
   res.clearCookie("refreshToken", {
     httpOnly: true,
     secure: true,
@@ -252,5 +255,23 @@ export const unBlockUser = asyncHandler(async (req, res, next) => {
   } catch (err) {
     console.log(err.msg);
     next(err);
+  }
+});
+
+export const updatePassword = asyncHandler(async (req, res, next) => {
+  const { _id } = req.user;
+  const { password } = req.body;
+  console.log(password);
+  validateMongodbId(_id);
+  const user = await UserSchema.findById(_id);
+  if (!password) {
+    res.status(400).json({ message: "Provide new password for updation" });
+  }
+  if (password) {
+    user.password = password;
+    const updatedPassword = await user.save();
+    res.json(updatedPassword);
+  } else {
+    res.json(user);
   }
 });
