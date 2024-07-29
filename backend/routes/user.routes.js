@@ -11,12 +11,16 @@ import {
   handleRefreshToken,
   logout,
   updatePassword,
+  forgotPasswordToken,
+  resetPassword,
 } from "../controllers/user.controller.js";
 import { authJwt, isAdmin } from "../middlewares/jwtAuth.js";
 export const userRouter = express.Router();
 
 userRouter.post("/register", createUser);
-userRouter.put("/update-password", authJwt, updatePassword)
+userRouter.post("/forget-password-token", forgotPasswordToken);
+userRouter.put("/reset-password/:token", resetPassword);
+userRouter.put("/update-password", authJwt, updatePassword);
 userRouter.post("/login", loginUser);
 userRouter.get("/get-all-Users", getAllUsers);
 userRouter.get("/refresh-token", handleRefreshToken);

@@ -1,11 +1,13 @@
 import asyncHandler from "express-async-handler";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 import generateToken from "../config/jwtAuthToken.js";
 import generateRefreshToken from "../config/refershToken.js";
 import { UserSchema } from "../models/user.model.js";
 import { validateMongodbId } from "../utils/validateMongoID.js";
+import { sendEmail } from "./email.controller.js";
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -274,4 +276,46 @@ export const updatePassword = asyncHandler(async (req, res, next) => {
   } else {
     res.json(user);
   }
+});
+
+export const forgotPasswordToken = asyncHandler(async (req, res, next) => {
+  const { email } = req.body;
+  const user = await UserSchema.findOne({ email });
+  if (!user) {
+    throw new Error("User not found with this email");
+  }
+  try {
+    const token = await user.createPasswordResetToken();
+    await user.save();
+    const resetUrl = `Hi, please follow this link to reset your password.This is link is valid till 10 minutes from now. <a href="http://localhost:3000/api/user/reset-password/${token}">Click Here</a>`;
+    const data = {
+      to: email,
+      text: "Hey User",
+      subject: "Forgot Password Link",
+      html: resetUrl,
+    };
+    sendEmail(data);
+    res.json(token);
+  } catch (err) {
+    console.log(err.message);
+    next(err);
+  }
+});
+
+export const resetPassword = asyncHandler(async (req, res, next) => {
+  const { password } = req.body;
+  const { token } = req.params;
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+  const user = await UserSchema.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+  if (!user) {
+    throw new Error("Token Expired, Please try again later");
+  }
+  user.password = password;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+  res.status(200).json(user);
 });
