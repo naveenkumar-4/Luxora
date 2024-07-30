@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 // Declare the Schema of the Mongo model
-var categorySchema = new mongoose.Schema(
+var productCategorySchema = new mongoose.Schema(
   {
     title: {
       type: String,
@@ -14,4 +14,4 @@ var categorySchema = new mongoose.Schema(
 );
 
 //Export the model
-export const CategorySchema = new mongoose.model("Category", categorySchema);
+export const CategorySchema = new mongoose.model("ProductCategory", productCategorySchema);

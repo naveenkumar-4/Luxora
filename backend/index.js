@@ -11,6 +11,7 @@ import { errorHandler, notFound } from "./middlewares/ErrorHandler.js";
 import { userRouter } from "./routes/user.routes.js";
 import { productRouter } from "./routes/product.routes.js";
 import { blogRouter } from "./routes/blog.routes.js";
+import { categoryRouter } from "./routes/product.category.routes.js";
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -23,10 +24,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-
 app.use("/api/user", userRouter);
 app.use("/api/product", productRouter);
-app.use("/api/blog", blogRouter)
+app.use("/api/blog", blogRouter);
+app.use("/api/category", categoryRouter);
 
 app.use(notFound);
 app.use(errorHandler);
