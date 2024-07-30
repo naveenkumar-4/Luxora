@@ -1,11 +1,11 @@
 import asyncHandler from "express-async-handler";
 
 import { validateMongodbId } from "../utils/validateMongoID.js";
-import { ProdcutCategorySchema } from "../models/product.category.model.js";
+import { BlogCategorySchema } from "../models/blogCat.model.js";
 
 export const createCategory = asyncHandler(async (req, res, next) => {
   try {
-    const newCategory = await ProdcutCategorySchema.create(req.body);
+    const newCategory = await BlogCategorySchema.create(req.body);
     res.status(201).json(newCategory);
   } catch (err) {
     console.log(err.message);
@@ -17,7 +17,7 @@ export const updateCategory = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
   validateMongodbId(id);
   try {
-    const updateCategory = await ProdcutCategorySchema.findByIdAndUpdate(
+    const updateCategory = await BlogCategorySchema.findByIdAndUpdate(
       id,
       req.body,
       { new: true }
@@ -33,7 +33,7 @@ export const deleteCategory = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
   validateMongodbId(id);
   try {
-    const deleteCategory = await ProdcutCategorySchema.findByIdAndDelete(id);
+    const deleteCategory = await BlogCategorySchema.findByIdAndDelete(id);
     res.status(201).json(deleteCategory);
   } catch (err) {
     console.log(err.message);
@@ -45,7 +45,7 @@ export const getCategory = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
   validateMongodbId(id);
   try {
-    const getCategory = await ProdcutCategorySchema.findById(id);
+    const getCategory = await BlogCategorySchema.findById(id);
     res.status(201).json(getCategory);
   } catch (err) {
     console.log(err.message);
@@ -56,7 +56,7 @@ export const getCategory = asyncHandler(async (req, res, next) => {
 
 export const getAllCategories = asyncHandler(async (req, res, next) => {
   try {
-    const getAllCategories = await ProdcutCategorySchema.find();
+    const getAllCategories = await BlogCategorySchema.find();
     res.status(201).json(getAllCategories);
   } catch (err) {
     console.log(err.message);

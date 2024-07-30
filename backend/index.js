@@ -11,7 +11,8 @@ import { errorHandler, notFound } from "./middlewares/ErrorHandler.js";
 import { userRouter } from "./routes/user.routes.js";
 import { productRouter } from "./routes/product.routes.js";
 import { blogRouter } from "./routes/blog.routes.js";
-import { categoryRouter } from "./routes/product.category.routes.js";
+import { productCategoryRouter } from "./routes/product.category.routes.js";
+import { blogCategoryRouter } from "./routes/blogCat.route.js";
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -27,7 +28,8 @@ app.use(cookieParser());
 app.use("/api/user", userRouter);
 app.use("/api/product", productRouter);
 app.use("/api/blog", blogRouter);
-app.use("/api/category", categoryRouter);
+app.use("/api/category", productCategoryRouter);
+app.use("/api/blogCategory", blogCategoryRouter)
 
 app.use(notFound);
 app.use(errorHandler);

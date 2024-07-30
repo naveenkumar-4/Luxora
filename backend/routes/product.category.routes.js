@@ -8,10 +8,10 @@ import {
   updateCategory,
 } from "../controllers/product.category.controller.js";
 
-export const categoryRouter = express.Router();
+export const productCategoryRouter = express.Router();
 
-categoryRouter.post("/", authJwt, isAdmin, createCategory);
-categoryRouter.put("/:id", authJwt, isAdmin, updateCategory);
-categoryRouter.delete("/:id", authJwt, isAdmin, deleteCategory);
-categoryRouter.get("/:id", getCategory);
-categoryRouter.get("/", getAllCategories);
+productCategoryRouter.post("/", authJwt, isAdmin, createCategory);
+productCategoryRouter.put("/:id", authJwt, isAdmin, updateCategory);
+productCategoryRouter.delete("/:id", authJwt, isAdmin, deleteCategory);
+productCategoryRouter.get("/:id", getCategory);
+productCategoryRouter.get("/", getAllCategories);
