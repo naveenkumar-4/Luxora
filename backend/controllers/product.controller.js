@@ -1,8 +1,9 @@
-import mongoose from "mongoose";
+import mongoose, { get } from "mongoose";
 import asyncHandler from "express-async-handler";
 import slugify from "slugify";
 
 import { ProductSchema } from "../models/product.model.js";
+import { UserSchema } from "../models/user.model.js";
 
 const ObjectId = mongoose.Types.ObjectId;
 export const createProduct = asyncHandler(async (req, res, next) => {
@@ -130,6 +131,100 @@ export const getAllProducts = asyncHandler(async (req, res, next) => {
       res.status(404).json({ message: "No products found" });
     }
     res.status(200).json(allProducts);
+  } catch (err) {
+    console.log(err.message);
+    next(err);
+  }
+});
+
+export const addToWishList = asyncHandler(async (req, res, next) => {
+  const { _id } = req.user;
+  const { productId } = req.body;
+  try {
+    const user = await UserSchema.findById(_id);
+    const alreadyAdded = user.wishlist.find(
+      (id) => id.toString() === productId
+    );
+    if (alreadyAdded) {
+      let user = await UserSchema.findByIdAndUpdate(
+        _id,
+        {
+          $pull: { wishlist: productId },
+        },
+        { new: true }
+      );
+      res.status(200).json(user);
+    } else {
+      let user = await UserSchema.findByIdAndUpdate(
+        _id,
+        {
+          $push: { wishlist: productId },
+        },
+        { new: true }
+      );
+      res.status(200).json(user);
+    }
+  } catch (err) {
+    console.log(er.message);
+  }
+});
+
+export const addRating = asyncHandler(async (req, res, next) => {
+  const { _id } = req.user;
+  console.log(_id);
+  const { star, productId } = req.body;
+  const product = await ProductSchema.findById(productId);
+  let alreadyRated = product.ratings.find(
+    (userId) => userId.postedBy.toString() === _id.toString()
+  );
+  try {
+    if (alreadyRated) {
+      const updateRating = await ProductSchema.updateOne(
+        {
+          ratings: { $elemMatch: alreadyRated },
+        },
+        {
+          $set: { "ratings.$.star": star },
+        },
+        {
+          new: true,
+        }
+      );
+      //   res.status(201).json(updateRating);
+    } else {
+      const rateProduct = await ProductSchema.findByIdAndUpdate(
+        productId,
+        {
+          $push: {
+            ratings: {
+              star: star,
+              postedBy: _id,
+            },
+          },
+        },
+        {
+          new: true,
+        }
+      );
+      //   res.status(201).json(rateProduct);
+    }
+
+    const getAllRatings = await ProductSchema.findById(productId);
+    let totalRatings = getAllRatings.ratings.length;
+    let ratingSum = getAllRatings.ratings
+      .map((item) => item.star)
+      .reduce((acc, curr) => acc + curr, 0);
+    let actualRating = Math.round(ratingSum / totalRatings);
+    let finalProduct = await ProductSchema.findByIdAndUpdate(
+      productId,
+      {
+        totalRatings: actualRating,
+      },
+      {
+        new: true,
+      }
+    );
+    res.status(201).json(finalProduct);
   } catch (err) {
     console.log(err.message);
     next(err);

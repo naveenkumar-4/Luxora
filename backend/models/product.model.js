@@ -51,6 +51,10 @@ const productSchema = new mongoose.Schema(
         postedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
       },
     ],
+    totalRatings: {
+      type: String,
+      default: 0,
+    },
   },
   { timestamps: true }
 );
