@@ -14,6 +14,7 @@ import { blogRouter } from "./routes/blog.routes.js";
 import { productCategoryRouter } from "./routes/product.category.routes.js";
 import { blogCategoryRouter } from "./routes/blogCat.route.js";
 import { brandRouter } from "./routes/brand.routes.js";
+import { couponRouter } from "./routes/coupon.routes.js";
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -32,6 +33,7 @@ app.use("/api/blog", blogRouter);
 app.use("/api/category", productCategoryRouter);
 app.use("/api/blogCategory", blogCategoryRouter);
 app.use("/api/brand", brandRouter);
+app.use("/api/coupon", couponRouter);
 
 app.use(notFound);
 app.use(errorHandler);
