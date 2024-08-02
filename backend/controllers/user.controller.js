@@ -10,6 +10,7 @@ import { ProductSchema } from "../models/product.model.js";
 import { CartSchema } from "../models/cart.model.js";
 import { validateMongodbId } from "../utils/validateMongoID.js";
 import { sendEmail } from "./email.controller.js";
+import { CouponSchema } from "../models/coupon.model.js";
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -200,9 +201,11 @@ export const updateUser = asyncHandler(async (req, res, next) => {
       },
       {
         new: true,
-        runValidators: true,
       }
     );
+    if (!updateUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
     res.status(200).json(updateUser);
   } catch (err) {
     console.log(err.message);
@@ -456,16 +459,33 @@ export const getUserCart = asyncHandler(async (req, res, next) => {
   const { _id } = req.user;
   validateMongodbId(_id);
   try {
-    const cart = await CartSchema.findOne({ orderedBy: _id }).populate("products.product");
-    if (!cart) {
-      res.status(200).json({
-        message: "No Products found in the cart",
-      });
-    }
+    const cart = await CartSchema.findOne({ orderedBy: _id }).populate(
+      "products.product"
+    );
     res.status(200).json(cart);
   } catch (err) {
     console.log(err.message);
     next(err);
   }
 });
+
+export const emptyUserCart = asyncHandler(async (req, res, next) => {
+  const { _id } = req.user;
+  validateMongodbId(_id);
+  try {
+    const cart = await CartSchema.findOne({ orderedBy: _id });
+    if (cart) {
+      const deletedCart = await CartSchema.findOneAndDelete({ orderedBy: _id });
+      res.json({
+        deletedCart: deletedCart,
+      });
+    } else {
+      res.json("Cart is Empty");
+    }
+  } catch (err) {
+    console.log(err.message);
+    next(err);
+  }
+});
+
 
