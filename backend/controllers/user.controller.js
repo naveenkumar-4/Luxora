@@ -2,6 +2,7 @@ import asyncHandler from "express-async-handler";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import uniqid from "uniqid";
 
 import generateToken from "../config/jwtAuthToken.js";
 import generateRefreshToken from "../config/refershToken.js";
@@ -11,6 +12,7 @@ import { CartSchema } from "../models/cart.model.js";
 import { validateMongodbId } from "../utils/validateMongoID.js";
 import { sendEmail } from "./email.controller.js";
 import { CouponSchema } from "../models/coupon.model.js";
+import { OrderSchema } from "../models/order.model.js";
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -513,4 +515,50 @@ export const applyCoupon = asyncHandler(async (req, res, next) => {
     { new: true }
   );
   res.json(totalAfterDiscount);
+});
+
+export const createOrder = asyncHandler(async (req, res, next) => {
+  const { COD, couponApplied } = req.body;
+  const { _id } = req.user;
+  validateMongodbId(_id);
+  try {
+    if (!COD) throw new Error("Create cash on delivery failed");
+    const user = await UserSchema.findById(_id);
+    const userCart = await CartSchema.findOne({ orderedBy: user._id });
+    let finalAmount = 0;
+    if (couponApplied && userCart.totalAfterDiscount) {
+      finalAmount = userCart.totalAfterDiscount;
+    } else {
+      finalAmount = userCart.cartTotal;
+    }
+
+    let newOrder = await new OrderSchema({
+      products: userCart.products,
+      paymentIntent: {
+        id: uniqid(),
+        method: "COD",
+        amount: finalAmount,
+        status: "Cash On Delivery",
+        created: Date.now(),
+        currency: "usd",
+      },
+      orderedBy: user._id,
+      orderStatus: "Cash On Delivery",
+    }).save();
+
+    let update = userCart.products.map((item) => {
+      return {
+        updateOne: {
+          filter: { _id: item.product._id },
+          update: { $inc: { quantity: -item.count, sold: +item.count } },
+        },
+      };
+    });
+
+    const updated = await ProductSchema.bulkWrite(update, {});
+    res.json({ message: "Success" });
+  } catch (err) {
+    console.log(err.message);
+    next(err);
+  }
 });
