@@ -6,6 +6,8 @@ import crypto from "crypto";
 import generateToken from "../config/jwtAuthToken.js";
 import generateRefreshToken from "../config/refershToken.js";
 import { UserSchema } from "../models/user.model.js";
+import { ProductSchema } from "../models/product.model.js";
+import { CartSchema } from "../models/cart.model.js";
 import { validateMongodbId } from "../utils/validateMongoID.js";
 import { sendEmail } from "./email.controller.js";
 
@@ -403,3 +405,51 @@ export const getWishList = asyncHandler(async (req, res, next) => {
     next(err);
   }
 });
+
+export const userCart = asyncHandler(async (req, res, next) => {
+  const { cart } = req.body;
+  const { _id } = req.user;
+  validateMongodbId(_id);
+  try {
+    let products = [];
+    const user = await UserSchema.findById(_id);
+    // check if user already have product in cart
+    const alreadyExistCart = await CartSchema.findOne({ orderedBy: user._id });
+    if (alreadyExistCart) {
+      alreadyExistCart.remove();
+    }
+
+    for (let i = 0; i < cart.length; i++) {
+      let object = {};
+      object.product = cart[i]._id;
+      object.count = cart[i].count;
+      object.color = cart[i].color;
+      let getPrice = await ProductSchema.findById(cart[i]._id)
+        .select("price")
+        .exec();
+      object.price = getPrice.price;
+      products.push(object);
+    }
+
+    let cartTotal = 0;
+    for (let i = 0; i < products.length; i++) {
+      let quantity = products[i].count;
+      let price = products[i].price;
+      cartTotal += quantity * price;
+    }
+    const newCart = await new CartSchema({
+      products,
+      cartTotal,
+      orderedBy: user?._id,
+    }).save();
+
+    console.log(newCart);
+    console.log(products, cartTotal);
+    res.status(201).json(newCart);
+  } catch (err) {
+    console.log(err.message);
+    next(err);
+  }
+});
+
+
