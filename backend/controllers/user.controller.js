@@ -562,3 +562,44 @@ export const createOrder = asyncHandler(async (req, res, next) => {
     next(err);
   }
 });
+
+// getOrders
+export const getAllOrders = asyncHandler(async (req, res, next) => {
+  const { _id } = req.user;
+  validateMongodbId(_id);
+  try {
+    const userOrders = await OrderSchema.findOne({ orderedBy: _id })
+      .populate("products.product")
+      .exec();
+    if (!userOrders) {
+      throw new Error("No orders");
+    }
+    res.json(userOrders);
+  } catch (err) {
+    console.log(err.message);
+    next(err);
+  }
+});
+
+// update order status
+export const updateOrderStatus = asyncHandler(async (req, res, next) => {
+  const { status } = req.body;
+  const { id } = req.params;
+  validateMongodbId(id);
+  try {
+    const updateOrder = await OrderSchema.findByIdAndUpdate(
+      id,
+      {
+        orderStatus: status,
+        paymentIntent: {
+          status: status,
+        },
+      },
+      { new: true }
+    );
+    res.json(updateOrder);
+  } catch (err) {
+    console.log(err.message);
+    next(errF);
+  }
+});
