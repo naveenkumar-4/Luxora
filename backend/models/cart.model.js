@@ -1,28 +1,27 @@
-const mongoose = require('mongoose'); // Erase if already required
+import mongoose from "mongoose";
 
 // Declare the Schema of the Mongo model
-var userSchema = new mongoose.Schema({
-    name:{
-        type:String,
-        required:true,
-        unique:true,
-        index:true,
+var cartSchema = new mongoose.Schema(
+  {
+    products: [
+      {
+        product: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+        },
+        count: Number,
+        color: String,
+        price: Number,
+      },
+    ],
+    cartTotal: Number,
+    totalAfterDiscount: Number,
+    orderedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
-    email:{
-        type:String,
-        required:true,
-        unique:true,
-    },
-    mobile:{
-        type:String,
-        required:true,
-        unique:true,
-    },
-    password:{
-        type:String,
-        required:true,
-    },
-});
+  },
+  { timestamps: true }
+);
 
-//Export the model
-module.exports = mongoose.model('User', userSchema);
+export const CartSchema = new mongoose.model("Cart", cartSchema);
