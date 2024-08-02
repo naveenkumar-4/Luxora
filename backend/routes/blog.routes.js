@@ -8,12 +8,22 @@ import {
   getBlog,
   likeBlog,
   updateBlog,
+  uploadImages,
 } from "../controllers/blog.controller.js";
 import { authJwt, isAdmin } from "../middlewares/jwtAuth.js";
+import { blogImgResize, uploadImage } from "../middlewares/uploadImages.js";
 
 export const blogRouter = express.Router();
 
 blogRouter.post("/", authJwt, isAdmin, createBlog);
+blogRouter.put(
+  "/upload/:id",
+  authJwt,
+  isAdmin,
+  uploadImage.array("images", 10),
+  blogImgResize,
+  uploadImages
+);
 blogRouter.put("/likes", authJwt, likeBlog);
 blogRouter.put("/dislikes", authJwt, disLikeBlog);
 blogRouter.put("/:id", authJwt, isAdmin, updateBlog);

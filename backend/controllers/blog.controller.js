@@ -1,9 +1,11 @@
 import asynchandler from "express-async-handler";
+import fs from "fs";
 
 import { BlogSchema } from "../models/blog.model.js";
 import { UserSchema } from "../models/user.model.js";
 import { validateMongodbId } from "../utils/validateMongoID.js";
 import mongoose from "mongoose";
+import { cloudinaryUploadImg } from "../utils/cloudinary.js";
 
 const ObjectId = mongoose.Schema.Types.ObjectId;
 
@@ -45,7 +47,7 @@ export const getBlog = asynchandler(async (req, res, next) => {
         new: true,
       }
     );
-    res.status(200).json({ success: true, getBlog});
+    res.status(200).json({ success: true, getBlog });
   } catch (err) {
     console.log(err.message);
     next(err);
@@ -170,5 +172,36 @@ export const disLikeBlog = asynchandler(async (req, res, next) => {
       }
     );
     res.json(blog);
+  }
+});
+export const uploadImages = asynchandler(async (req, res, next) => {
+  console.log(req.files);
+  const { id } = req.params;
+  validateMongodbId(id);
+  try {
+    const uploader = (path) => cloudinaryUploadImg(path, "images");
+    const urls = [];
+    const files = req.files;
+    for (const file of files) {
+      const { path } = file;
+      const newPath = await uploader(path);
+      urls.push(newPath);
+    }
+    const findBlog = await BlogSchema.findByIdAndUpdate(
+      id,
+      {
+        images: urls.map((file) => {
+          return file;
+        }),
+      },
+      {
+        new: true,
+      }
+    );
+    console.log(findBlog);
+    res.json(findBlog);
+  } catch (err) {
+    console.log(err.message);
+    next(err);
   }
 });

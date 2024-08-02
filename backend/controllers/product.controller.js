@@ -1,11 +1,15 @@
 import mongoose, { get } from "mongoose";
 import asyncHandler from "express-async-handler";
 import slugify from "slugify";
+import fs from "fs";
 
 import { ProductSchema } from "../models/product.model.js";
 import { UserSchema } from "../models/user.model.js";
+import { validateMongodbId } from "../utils/validateMongoID.js";
+import { cloudinaryUploadImg } from "../utils/cloudinary.js";
 
 const ObjectId = mongoose.Types.ObjectId;
+
 export const createProduct = asyncHandler(async (req, res, next) => {
   try {
     if (req.body.title) {
@@ -38,7 +42,7 @@ export const updateProduct = asyncHandler(async (req, res, next) => {
     const updateProduct = await ProductSchema.findByIdAndUpdate(id, req.body, {
       new: true,
     });
-    console.log(`Updated product : ${updateProduct}`);
+    // console.log(`Updated product : ${updateProduct}`);
     res.status(201).json(updateProduct);
   } catch (err) {
     console.log(err.message);
@@ -59,7 +63,7 @@ export const deleteProduct = asyncHandler(async (req, res, next) => {
       });
     }
     const deleteProduct = await ProductSchema.findOneAndDelete(id);
-    console.log(`Deleted product : ${deleteProduct}`);
+    // console.log(`Deleted product : ${deleteProduct}`);
     res.status(201).json({ message: "Product Deleted", deleteProduct });
   } catch (err) {
     console.log(err.message);
@@ -171,7 +175,7 @@ export const addToWishList = asyncHandler(async (req, res, next) => {
 
 export const addRating = asyncHandler(async (req, res, next) => {
   const { _id } = req.user;
-  console.log(_id);
+  //   console.log(_id);
   const { star, comment, productId } = req.body;
   const product = await ProductSchema.findById(productId);
   let alreadyRated = product.ratings.find(
@@ -226,6 +230,40 @@ export const addRating = asyncHandler(async (req, res, next) => {
       }
     );
     res.status(201).json(finalProduct);
+  } catch (err) {
+    console.log(err.message);
+    next(err);
+  }
+});
+
+export const uploadImages = asyncHandler(async (req, res, next) => {
+  console.log(req.files);
+  const { id } = req.params;
+  validateMongodbId(id);
+  try {
+    const uploader = (path) => cloudinaryUploadImg(path, "images");
+    const urls = [];
+    // console.log(req.files);
+    const files = req.files;
+    for (const file of files) {
+      const { path } = file;
+      const newPath = await uploader(path);
+      urls.push(newPath);
+      // await fs.unlinkSync(path);
+    }
+    const findProduct = await ProductSchema.findByIdAndUpdate(
+      id,
+      {
+        images: urls.map((file) => {
+          return file;
+        }),
+      },
+      {
+        new: true,
+      }
+    );
+    console.log("hello" + findProduct);
+    res.json(findProduct);
   } catch (err) {
     console.log(err.message);
     next(err);
