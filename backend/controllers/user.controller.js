@@ -208,6 +208,26 @@ export const updateUser = asyncHandler(async (req, res, next) => {
   }
 });
 
+// Save user address
+export const saveAddress = asyncHandler(async (req, res, next) => {
+  const { _id } = req.user;
+  validateMongodbId(_id);
+  try {
+    const updateUser = await UserSchema.findByIdAndUpdate(
+      _id,
+      {
+        address: req?.body?.address,
+      },
+      {
+        new: true,
+      }
+    );
+    res.json(updateUser);
+  } catch (err) {
+    console.log(err.message);
+    next(err);
+  }
+});
 
 // Get all users
 export const getAllUsers = asyncHandler(async (req, res, next) => {

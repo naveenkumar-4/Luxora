@@ -1,6 +1,7 @@
 import mongoose from "mongoose"; // Erase if already required
 import bcrypt from "bcrypt";
 import crypto from "crypto";
+import { type } from "os";
 // Declare the Schema of the Mongo model
 export const userSchema = new mongoose.Schema(
   {
@@ -38,7 +39,9 @@ export const userSchema = new mongoose.Schema(
       type: Array,
       default: [],
     },
-    address: [{ type: mongoose.Schema.Types.ObjectId, ref: "Address" }],
+    address: {
+      type: String,
+    },
     wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
     refreshToken: {
       type: String,
