@@ -416,7 +416,7 @@ export const userCart = asyncHandler(async (req, res, next) => {
     // check if user already have product in cart
     const alreadyExistCart = await CartSchema.findOne({ orderedBy: user._id });
     if (alreadyExistCart) {
-      alreadyExistCart.remove();
+      await CartSchema.deleteOne({ _id: alreadyExistCart._id });
     }
 
     for (let i = 0; i < cart.length; i++) {
@@ -452,4 +452,20 @@ export const userCart = asyncHandler(async (req, res, next) => {
   }
 });
 
+export const getUserCart = asyncHandler(async (req, res, next) => {
+  const { _id } = req.user;
+  validateMongodbId(_id);
+  try {
+    const cart = await CartSchema.findOne({ orderedBy: _id }).populate("products.product");
+    if (!cart) {
+      res.status(200).json({
+        message: "No Products found in the cart",
+      });
+    }
+    res.status(200).json(cart);
+  } catch (err) {
+    console.log(err.message);
+    next(err);
+  }
+});
 
