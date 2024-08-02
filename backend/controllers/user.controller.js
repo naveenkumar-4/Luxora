@@ -488,4 +488,29 @@ export const emptyUserCart = asyncHandler(async (req, res, next) => {
   }
 });
 
-
+export const applyCoupon = asyncHandler(async (req, res, next) => {
+  const { _id } = req.user;
+  const { coupon } = req.body;
+  const validCoupon = await CouponSchema.findOne({ name: coupon });
+  // console.log(validCoupon);
+  if (!validCoupon) {
+    res.status(400).json({ message: "Coupon is invalid" });
+  }
+  const user = await UserSchema.findOne({ _id });
+  let { products, cartTotal } = await CartSchema.findOne({
+    orderedBy: user._id,
+  }).populate("products.product");
+  if (!products) {
+    throw new Error("Cart is Empty");
+  }
+  let totalAfterDiscount = (
+    cartTotal -
+    (cartTotal * validCoupon.discount) / 100
+  ).toFixed(2);
+  await CartSchema.findOneAndUpdate(
+    { orderedBy: user._id },
+    { totalAfterDiscount: totalAfterDiscount },
+    { new: true }
+  );
+  res.json(totalAfterDiscount);
+});

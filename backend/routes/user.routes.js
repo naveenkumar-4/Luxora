@@ -19,6 +19,7 @@ import {
   userCart,
   getUserCart,
   emptyUserCart,
+  applyCoupon,
 } from "../controllers/user.controller.js";
 import { authJwt, isAdmin } from "../middlewares/jwtAuth.js";
 export const userRouter = express.Router();
@@ -35,6 +36,7 @@ userRouter.get("/refresh-token", handleRefreshToken);
 userRouter.get("/logout", logout);
 userRouter.get("/wishList", authJwt, getWishList);
 userRouter.post("/cart", authJwt, userCart);
+userRouter.post("/cart/apply-coupon", authJwt, applyCoupon);
 userRouter.get("/user-cart", authJwt, getUserCart);
 userRouter.delete("/empty-cart", authJwt, emptyUserCart);
 
