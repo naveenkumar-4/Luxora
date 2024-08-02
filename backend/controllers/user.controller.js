@@ -80,6 +80,57 @@ export const loginUser = asyncHandler(async (req, res, next) => {
   }
 });
 
+// Admin login
+export const loginAdmin = asyncHandler(async (req, res, next) => {
+  const { email, password } = req.body;
+  try {
+    // checking user if exist or not
+    if (!email && !password) {
+      throw new Error("All fields are mandatory");
+    }
+    if (!email || email.trim() == "") {
+      throw new Error("Email is required");
+    }
+    if (!password || password == "") {
+      throw new Error("Password is required");
+    }
+    const findAdmin = await UserSchema.findOne({ email });
+    if (findAdmin.role !== "admin") throw new Error("You are not Authorized");
+    if (findAdmin && (await findAdmin.isPasswordMatched(password))) {
+      // res.status(200).json({ ...findUser, token: generateToken(findUser?._id) });
+      const refreshToken = await generateRefreshToken(findAdmin?._id);
+      const updateUser = await UserSchema.findByIdAndUpdate(
+        findAdmin._id,
+        {
+          refreshToken: refreshToken,
+        },
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        maxAge: 72 * 60 * 60 * 1000,
+      });
+      res.status(200).json({
+        _id: findAdmin?._id,
+        firstname: findAdmin?.firstname,
+        lastname: findAdmin?.lastname,
+        email: findAdmin?.email,
+        mobile: findAdmin?.mobile,
+        token: generateToken(findAdmin?._id),
+      });
+    } else {
+      // console.log("Login failed");
+      throw new Error("Invalid Credentials");
+    }
+  } catch (err) {
+    console.log(err.message);
+    next(err);
+  }
+});
+
 // Handle refresh token
 export const handleRefreshToken = asyncHandler(async (req, res, next) => {
   const cookie = req.cookies;
@@ -156,6 +207,7 @@ export const updateUser = asyncHandler(async (req, res, next) => {
     next(err);
   }
 });
+
 
 // Get all users
 export const getAllUsers = asyncHandler(async (req, res, next) => {
@@ -318,4 +370,16 @@ export const resetPassword = asyncHandler(async (req, res, next) => {
   user.passwordResetExpires = undefined;
   await user.save();
   res.status(200).json(user);
+});
+
+export const getWishList = asyncHandler(async (req, res, next) => {
+  const { _id } = req.user;
+  validateMongodbId(_id);
+  try {
+    const findUser = await UserSchema.findById(_id).populate("wishlist");
+    res.json(findUser);
+  } catch (err) {
+    console.log(err.message);
+    next(err);
+  }
 });
